@@ -2,6 +2,7 @@ FROM ubuntu:20.04
 
 ENV TZ=Etc/UTC
 ENV DEBIAN_FRONTEND=noninteractive
+ENV OPENSSL_NO_DOCS=1
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
