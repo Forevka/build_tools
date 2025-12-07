@@ -1,4 +1,4 @@
-name: Docker Build and Release
+name: Build and Release
 
 on:
   push:
@@ -21,21 +21,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up output directory
-        run: mkdir -p out
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
 
-      - name: Build Docker image
+      - name: Run build script
         run: |
-          docker build --tag onlyoffice-document-editors-builder .
-
-      - name: Run Docker container to build
-        run: |
-          docker run -v $PWD/out:/build_tools/out onlyoffice-document-editors-builder
+          ./automate.py server
 
       - name: List output directory contents
         run: |
           echo "Contents of out directory:"
-          ls -lh out/
+          ls -lh out/ || echo "out directory is empty or doesn't exist"
 
       - name: Create release archives
         id: create_archives
