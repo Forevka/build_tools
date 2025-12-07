@@ -7,6 +7,8 @@ import os
 import subprocess
 import deps
 
+os.environ['OPENSSL_BUILD_FLAGS'] = 'no-docs no-tests'
+
 def get_branch_name(directory):
   cur_dir = os.getcwd()
   os.chdir(directory)
