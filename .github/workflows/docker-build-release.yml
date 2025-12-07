@@ -1,0 +1,93 @@
+name: Docker Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag name (e.g., v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up output directory
+        run: mkdir -p out
+
+      - name: Build Docker image
+        run: |
+          docker build --tag onlyoffice-document-editors-builder .
+
+      - name: Run Docker container to build
+        run: |
+          docker run -v $PWD/out:/build_tools/out onlyoffice-document-editors-builder
+
+      - name: List output directory contents
+        run: |
+          echo "Contents of out directory:"
+          ls -lh out/
+
+      - name: Create release archives
+        id: create_archives
+        run: |
+          cd out
+          # Create individual zip files for each item in out directory
+          for item in *; do
+            if [ -f "$item" ]; then
+              # If it's a file, zip it
+              zip "${item}.zip" "$item"
+            elif [ -d "$item" ]; then
+              # If it's a directory, zip its contents
+              zip -r "${item}.zip" "$item"
+            fi
+          done
+
+          # Also create a complete archive with everything
+          cd ..
+          zip -r onlyoffice-build-complete.zip out/
+
+          echo "Created archives:"
+          ls -lh out/*.zip 2>/dev/null || true
+          ls -lh onlyoffice-build-complete.zip 2>/dev/null || true
+
+      - name: Determine release tag
+        id: release_tag
+        run: |
+          if [ "${{ github.event_name }}" == "push" ]; then
+            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ github.event.inputs.release_tag }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.release_tag.outputs.tag }}
+          name: OnlyOffice Build ${{ steps.release_tag.outputs.tag }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            out/*.zip
+            onlyoffice-build-complete.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: onlyoffice-build-${{ steps.release_tag.outputs.tag }}
+          path: |
+            out/
+            onlyoffice-build-complete.zip
+          retention-days: 30
