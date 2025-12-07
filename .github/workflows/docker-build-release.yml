@@ -28,6 +28,7 @@ jobs:
 
       - name: Run build script
         run: |
+          cd tools/linux
           ./automate.py server
 
       - name: List output directory contents
