@@ -26,6 +26,11 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Clean up npm conflicts
+        run: |
+          sudo rm -f /usr/local/bin/grunt || true
+          sudo rm -f /usr/local/bin/bower || true
+
       - name: Run build script
         run: |
           cd tools/linux
