@@ -567,11 +567,11 @@ def git_update(repo, is_no_errors=False, is_current_dir=False, git_owner=""):
   owner = git_owner if git_owner else "ONLYOFFICE"
   url = git_get_base_url() + owner + "/" + repo + ".git"
   if (repo == "server"):
-    url = "https://github.com/thomisus/" + repo + ".git"
+    url = "https://github.com/forevka/" + repo + ".git"
   if git_is_ssh():
     url = get_ssh_base_url() + repo + ".git"
     if (repo == "server"):
-      url = "git@github.com:thomisus/" + repo + ".git"
+      url = "git@github.com:forevka/" + repo + ".git"
   folder = get_script_dir() + "/../../" + repo
   if is_current_dir:
     folder = repo
