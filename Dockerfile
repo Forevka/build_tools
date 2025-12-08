@@ -12,7 +12,18 @@ RUN echo 'keyboard-configuration keyboard-configuration/layoutcode string us' | 
 RUN apt-get -y update && \
     apt-get -y install tar \
                        sudo \
-                       wget
+                       wget \
+                       dos2unix \
+                       curl \
+                       ca-certificates \
+                       gnupg
+
+# Install Node.js 20 LTS
+RUN mkdir -p /etc/apt/keyrings && \
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list && \
+    apt-get update && \
+    apt-get install -y nodejs
 
 RUN wget https://github.com/Kitware/CMake/releases/download/v3.30.0/cmake-3.30.0-linux-x86_64.tar.gz && \
     tar -xzf cmake-3.30.0-linux-x86_64.tar.gz -C /opt && \
@@ -22,6 +33,10 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v3.30.0/cmake-3.30.0
 
 ADD . /build_tools
 WORKDIR /build_tools
+
+# Convert line endings AFTER copying files
+RUN find . -type f -name "*.py" -exec dos2unix {} \; && \
+    find . -type f -name "*.sh" -exec dos2unix {} \;
 
 RUN mkdir -p /opt/python3 && \
     wget -P /opt/python3/ https://github.com/ONLYOFFICE-data/build_tools_data/raw/refs/heads/master/python/python3.tar.gz && \
